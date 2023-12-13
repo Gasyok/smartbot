@@ -1,0 +1,31 @@
+# SmartBot
+
+Telegram bot
+
+## Getting Started
+
+python main.py
+
+### Requirements
+
+aiogram,
+python3.12,
+aiogram
+
+### Installing
+
+pip3 install aiogram
+
+## Usage
+
+python main.py
+
+## Deployment
+
+## Authors
+
+- **Gassyrbek** - smartbot - [ВашGithub](https://github.com/Gasyok)
+
+## License
+
+Этот проект распространяется под лицензией MIT - см. файл LICENSE.md для подробностей.
