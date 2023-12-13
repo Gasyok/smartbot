@@ -28,4 +28,4 @@ python main.py
 
 ## License
 
-Этот проект распространяется под лицензией MIT - см. файл LICENSE.md для подробностей.
+This project is licensed under the MIT License - see the LICENSE.md file for details.
