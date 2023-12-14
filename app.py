@@ -1,13 +1,12 @@
 from fastapi import FastAPI
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
-from config import cfg as cfg
-from bot import bot, dp
+from src.config import cfg as cfg
+from src.bot import bot, dp
 from contextlib import asynccontextmanager
-from aiohttp import web
 import logging
 import uvicorn
-from handlers import commands
+from src.handlers import user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -28,7 +27,7 @@ async def lifespan(app: FastAPI):
 
     # Register routes
     # dp.include_router(start_router)
-    dp.include_router(commands.router)
+    dp.include_router(user.router)
 
     yield
     await bot.session.close()
@@ -45,5 +44,4 @@ async def bot_webhook(update: dict):
 
 
 if __name__ == "__main__":
-    # web.run_app(app, host=cfg.WEBAPP_HOST, port=cfg.WEBAPP_PORT)
     uvicorn.run(app)
