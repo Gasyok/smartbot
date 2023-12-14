@@ -1,12 +1,14 @@
+import logging
+import uvicorn
+
 from fastapi import FastAPI
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
-from src.config import cfg as cfg
-from src.bot import bot, dp
 from contextlib import asynccontextmanager
-import logging
-import uvicorn
-from src.handlers import user
+
+from config import cfg
+from config.setup import bot, dp
+from handlers import user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
