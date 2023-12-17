@@ -32,6 +32,9 @@ async def lifespan(app: FastAPI):
     dp.include_router(user.router)
 
     yield
+    # await bot(DeleteWebhook(drop_pending_updates=True))
+
+    await bot.delete_webhook(drop_pending_updates=True)
     await bot.session.close()
     logger.info("App stopped")
 
