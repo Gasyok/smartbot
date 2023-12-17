@@ -162,3 +162,5 @@ cython_debug/
 
 .DS_Store
 Thumbs.db
+# src/config/
+# src/data/

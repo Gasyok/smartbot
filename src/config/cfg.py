@@ -5,7 +5,7 @@ load_dotenv()
 
 TOKEN = os.getenv("TOKEN", "NONE")
 
-WEBHOOK_HOST = "https://5521-2-78-169-222.ngrok.io"
+WEBHOOK_HOST = "https://53df-37-151-97-237.ngrok.io"
 WEBHOOK_PATH = "/webhook/" + TOKEN
 WEBHOOK_URL = WEBHOOK_HOST + WEBHOOK_PATH
 WEBAPP_HOST = "localhost"

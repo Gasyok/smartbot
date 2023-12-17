@@ -8,12 +8,13 @@ from contextlib import asynccontextmanager
 
 from config import cfg
 from config.setup import bot, dp
-from handlers import user
+from handlers import user, callback
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO,
-    format="%(filename)s:%(lineno)d #%(levelname)-8s [%(asctime)s] - %(name)s - %(message)s",
+    format="\
+    %(filename)s:%(lineno)d#%(levelname)-8s[%(asctime)s]-%(name)s-%(message)s",
 )
 
 
@@ -23,18 +24,17 @@ WEBHOOK_URL = cfg.WEBHOOK_URL
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    await bot.delete_webhook(drop_pending_updates=True)
     webhook_info = await bot.get_webhook_info()
     if webhook_info.url != WEBHOOK_URL:
         await bot.set_webhook(url=WEBHOOK_URL)
 
-    # Register routes
-    # dp.include_router(start_router)
+    # Register routers
+    dp.include_router(callback.router)
     dp.include_router(user.router)
 
     yield
-    # await bot(DeleteWebhook(drop_pending_updates=True))
 
-    await bot.delete_webhook(drop_pending_updates=True)
     await bot.session.close()
     logger.info("App stopped")
 
