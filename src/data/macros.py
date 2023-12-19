@@ -46,9 +46,10 @@ class Macros:
             "SELECT code FROM macros WHERE user_id = ? AND name = ?",
             (user_id, name)
         )
-        result = cursor.fetchone()
+        result = cursor.fetchall()
+        code = result[0][0] if result else None
         conn.close()
-        return result[0] is not None
+        return code
 
     def set_user_macro(self, user_id, name, code):
         conn = sqlite3.connect(self.db)

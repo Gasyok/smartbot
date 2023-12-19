@@ -30,8 +30,8 @@ async def lifespan(app: FastAPI):
         await bot.set_webhook(url=WEBHOOK_URL)
 
     # Register routers
-    dp.include_router(callback.router)
     dp.include_router(user.router)
+    dp.include_router(callback.router)
 
     yield
 
