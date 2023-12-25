@@ -63,13 +63,14 @@ async def cmd_macros(message: Message, state: FSMContext):
         list_of_macros.append({"user_id": user_id, "macros_name": str(mac)})
 
     await message.reply("You got:\n", reply_markup=kb.btns(list_of_macros))
-    # await state.set_state("dajfi")
-
-# @router.message(STATEACTION, F.te)
 
 
 @router.message(StateFilter(None), Command("setmacros"))
-async def cmd_setmacros(message: Message, command: CommandObject, state: FSMContext):
+async def cmd_setmacros(
+    message: Message,
+    command: CommandObject,
+    state: FSMContext
+):
     user_id = int(message.from_user.id) if message.from_user else 0
     if command.args is None:
         await message.answer("Error: no arguments")
@@ -125,23 +126,6 @@ async def code_done(message: Message, state: FSMContext):
                 timeout=5,
                 cwd=tmpdir,
             )
-            # result = subprocess.run(
-            #     [
-            #         "docker",
-            #         "run",
-            #         "--rm",
-            #         "--memory",
-            #         "512m",  # Ограничение памяти
-            #         "--cpus",
-            #         "1.0",  # Ограничение CPU
-            #         "-v",
-            #         f"{tmpdir}:/app",  # Монтируем tmpdir в контейнер
-            #         "code-executor",  # Название вашего Docker-образа
-            #     ],
-            #     capture_output=True,
-            #     text=True,
-            #     timeout=30,  # Увеличенное время ожидания для Docker
-            # )
             output = result.stdout if result.stdout else result.stderr
 
             for file in os.listdir(tmpdir):
