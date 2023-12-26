@@ -12,7 +12,8 @@ def btns(macros: list):
             callback_data=UserMacros(
                 action="Show",
                 user_id=macro.get("user_id"),
-                macros_name=macro.get("macros_name")
+                macros_name=macro.get("macros_name"),
+                arguments=""
             ).pack()
         )
 
@@ -21,14 +22,32 @@ def btns(macros: list):
 
 def btns_action(data: UserMacros):
     kb = InlineKeyboardBuilder()
-    actions = ["Code", "Run"]
+    actions = ["Code", "Run", "Edit", "Delete"]
     for action in actions:
         kb.button(
             text=action,
             callback_data=UserMacros(
                 action=action,
                 user_id=data.user_id,
-                macros_name=data.macros_name
+                macros_name=data.macros_name,
+                arguments=data.arguments
+            ).pack()
+        )
+
+    return kb.as_markup(resize_keyboard=True)
+
+
+def btns_run_arguments(data: UserMacros):
+    kb = InlineKeyboardBuilder()
+    actions = ["None", "Enter"]
+    for action in actions:
+        kb.button(
+            text=action,
+            callback_data=UserMacros(
+                action=action,
+                user_id=data.user_id,
+                macros_name=data.macros_name,
+                arguments=data.arguments
             ).pack()
         )
 
@@ -44,7 +63,8 @@ def btns_run_format(data: UserMacros):
             callback_data=UserMacros(
                 action=action,
                 user_id=data.user_id,
-                macros_name=data.macros_name
+                macros_name=data.macros_name,
+                arguments=data.arguments
             ).pack()
         )
 
