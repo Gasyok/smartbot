@@ -38,8 +38,8 @@ async def callback_show_list(callback: types.CallbackQuery):
     await message.reply("You got:\n", reply_markup=kb.btns(list_of_macros))
 
 
-@router.callback_query(F.data == "add_macros")
-async def callback_add_macros(callback: types.CallbackQuery):
+# @router.callback_query(F.data == "add_macros")
+# async def callback_add_macros(callback: types.CallbackQuery):
 
 
 @router.callback_query(UserMacros.filter())
