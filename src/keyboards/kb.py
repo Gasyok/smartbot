@@ -16,8 +16,25 @@ def btns(macros: list):
                 arguments=""
             ).pack()
         )
+    kb.adjust(len(macros))
+    kb.button(
+        text="Back",
+        callback_data="back_to_macros"
+    )
 
     return kb.as_markup(resize_keyboard=True)
+
+
+def btns_options():
+    kb = InlineKeyboardBuilder()
+    kb.button(
+        text="Show",
+        callback_data="show_list_of_macros"
+    )
+    kb.button(
+        text="Add",
+        callback_data="add_macros"
+    )
 
 
 def btns_action(data: UserMacros):

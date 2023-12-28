@@ -4,29 +4,28 @@ from aiogram.filters import Command, StateFilter, CommandObject
 from aiogram.types import Message
 from aiogram.utils.formatting import (
     Bold,
-    as_list,
-    as_marked_section,
-    as_key_value,
-    HashTag,
+    Text
+    # as_list,
+    # as_marked_section,
+    # as_key_value,
+    # HashTag,
 )
 from aiogram import types
 import subprocess
 import os
 import tempfile
-from aiogram.enums import ParseMode
-from aiogram.utils.formatting import Text, Bold
-from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile
+# from aiogram.enums import ParseMode
+from aiogram.types import BufferedInputFile
 
 
 from keyboards import kb
 from states.states import ExecuteCode
 from aiogram.fsm.context import FSMContext
 from data.macros import macros
-from typing import Optional
-from aiogram.filters.callback_data import CallbackData
-import logging
-from handlers.callback import UserMacros
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+# from aiogram.filters.callback_data import CallbackData
+# import logging
+# from handlers.callback import UserMacros
+# from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
 router = Router()
@@ -34,7 +33,10 @@ router = Router()
 
 @router.message(StateFilter(None), Command("start"))
 async def cmd_start(message: Message, state: FSMContext):
-    content = Text("Hello, ", Bold(message.from_user.full_name))
+    try:
+        content = Text("Hello, ", Bold(message.from_user.full_name))
+    except Exception:
+        content = Text("Hello!")
     content += Text("\nThis is SmartBot!\nCan I help you?")
     await message.answer(**content.as_kwargs())
 
@@ -52,55 +54,52 @@ async def cmd_exec(message: Message, state: FSMContext):
 
 @router.message(StateFilter(None), Command("macros"))
 async def cmd_macros(message: Message, state: FSMContext):
-    user_id = int(message.from_user.id) if message.from_user else 0
-    info = macros.get_user_macro(user_id)
-
-    list_of_macros = []
-    if not info:
-        await message.reply("You have 0 macros assigned to you")
+    user_id = int(message.from_user.id) if message.from_user else None
+    if not user_id:
         return
-    for mac in info:
-        list_of_macros.append({"user_id": user_id, "macros_name": str(mac)})
-
-    await message.reply("You got:\n", reply_markup=kb.btns(list_of_macros))
-
-
-@router.message(StateFilter(None), Command("setmacros"))
-async def cmd_setmacros(
-    message: Message,
-    command: CommandObject,
-    state: FSMContext
-):
-    user_id = int(message.from_user.id) if message.from_user else 0
-    if command.args is None:
-        await message.answer("Error: no arguments")
-        return
-    try:
-        name = command.args.strip()
-    except ValueError:
-        await message.answer("Format Error. Example:\n" "/setmacros <name>")
-        return
-
-    if macros.get_macros_id(user_id, name):
-        await message.reply("Macros with this name already exists\n")
-        return
-
-    await state.update_data(macros_name=name)
-
-    await message.answer("Write down the code of your macros")
-    await state.set_state(ExecuteCode.macro)
-    # await ExecuteCode.macro.set()
+    await message.reply(
+        "What do you want to do?\n",
+        reply_markup=kb.btns_options()
+    )
 
 
-@router.message(ExecuteCode.macro, F.text)
-async def cmd_savemacros(message: Message, state: FSMContext):
-    user_id = int(message.from_user.id) if message.from_user else 0
-    data = await state.get_data()
-    name = data.get("macros_name")
-    code = message.text if message.text else ""
-    macros.set_user_macro(user_id, name, code)
-    await message.answer("Success!")
-    await state.clear()
+# @router.message(StateFilter(None), Command("setmacros"))
+# async def cmd_setmacros(
+#     message: Message,
+#     command: CommandObject,
+#     state: FSMContext
+# ):
+#     user_id = int(message.from_user.id) if message.from_user else 0
+#     if command.args is None:
+#         await message.answer(
+#             "Error: no arguments.\nFormat: /setmacros {macrosname}"
+#         )
+#         return
+#     try:
+#         name = command.args.strip()
+#     except ValueError:
+#         await message.answer("Format Error. Example:\n" "/setmacros <name>")
+#         return
+
+#     if macros.get_macros_code(user_id, name)[0]:
+#         await message.reply("Macros with this name already exists\n")
+#         return
+
+#     await state.update_data(macros_name=name)
+
+#     await message.answer("Write down the code of your macros")
+#     await state.set_state(ExecuteCode.macro)
+
+
+# @router.message(ExecuteCode.macro, F.text)
+# async def cmd_savemacros(message: Message, state: FSMContext):
+#     user_id = int(message.from_user.id) if message.from_user else 0
+#     data = await state.get_data()
+#     name = data.get("macros_name")
+#     code = message.text if message.text else ""
+#     macros.set_user_macro(user_id, name, code)
+#     await message.answer("Success!")
+#     await state.clear()
 
 
 @router.message(ExecuteCode.code, Command("cancel"))

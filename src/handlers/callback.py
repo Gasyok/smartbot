@@ -23,6 +23,25 @@ class UserMacros(CallbackData, prefix="macros"):
     arguments: str
 
 
+@router.callback_query(F.data == "show_list_of_macros")
+async def callback_show_list(callback: types.CallbackQuery):
+    user_id = int(message.from_user.id) if message.from_user else 0
+    info = macros.get_user_macro(user_id)
+
+    list_of_macros = []
+    if not info:
+        await message.reply("You have 0 macros assigned to you")
+        return
+    for mac in info:
+        list_of_macros.append({"user_id": user_id, "macros_name": str(mac)})
+
+    await message.reply("You got:\n", reply_markup=kb.btns(list_of_macros))
+
+
+@router.callback_query(F.data == "add_macros")
+async def callback_add_macros(callback: types.CallbackQuery):
+
+
 @router.callback_query(UserMacros.filter())
 async def callbacks_macros(
     callback: types.CallbackQuery,
@@ -42,7 +61,7 @@ async def callbacks_macros(
                 reply_markup=kb.btns_action(callback_data)
             )
         case "Code":
-            code = macros.get_macros_id(user_id, macros_name)
+            code = macros.get_macros_code(user_id, macros_name)[0]
             await callback.message.edit_text(
                 f"Your Code below:\n{code}"
             )
@@ -68,7 +87,7 @@ async def callbacks_macros(
             )
 
     if action == "Stdout" or action == "File":
-        code = macros.get_macros_id(user_id, macros_name)
+        code = macros.get_macros_code(user_id, macros_name)[0]
         with tempfile.TemporaryDirectory() as tmpdir:
             script_path = os.path.join(tmpdir, "script.py")
             with open(script_path, "w") as script_file:

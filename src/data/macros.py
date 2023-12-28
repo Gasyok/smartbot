@@ -1,4 +1,5 @@
 import sqlite3
+import json
 
 
 class Macros:
@@ -24,7 +25,8 @@ class Macros:
                 id INTEGER PRIMARY KEY,
                 user_id INTEGER NOT NULL,
                 name TEXT NOT NULL,
-                code TEXT NOT NULL
+                code TEXT NOT NULL,
+                params TEXT
             )
             """
         )
@@ -39,24 +41,25 @@ class Macros:
         conn.close()
         return [row[0] for row in rows]
 
-    def get_macros_id(self, user_id, name):
+    def get_macros_code(self, user_id, name):
         conn = sqlite3.connect(self.db)
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT code FROM macros WHERE user_id = ? AND name = ?",
+            "SELECT code, params FROM macros WHERE user_id = ? AND name = ?",
             (user_id, name)
         )
         result = cursor.fetchall()
-        code = result[0][0] if result else None
+        code, params_json = result[0] if result else (None, None)
         conn.close()
-        return code
+        params = json.loads(params_json) if params_json else None
+        return code, params
 
-    def set_user_macro(self, user_id, name, code):
+    def set_user_macro(self, user_id, name, code, params=None):
         conn = sqlite3.connect(self.db)
         cursor = conn.cursor()
         cursor.execute(
-            "INSERT INTO macros (user_id, name, code) VALUES (?, ?, ?)",
-            (user_id, name, code),
+            "INSERT INTO macros (user_id, name, code, params) VALUES (?, ?, ?, ?)",
+            (user_id, name, code, json.dumps(params)),
         )
         conn.commit()
         conn.close()
