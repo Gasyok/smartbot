@@ -102,7 +102,7 @@ async def cmd_macros(message: Message, state: FSMContext):
 #     await state.clear()
 
 
-@router.message(ExecuteCode.code, Command("cancel"))
+@router.message(Command("cancel"))
 async def cmd_cancel(message: Message, state: FSMContext):
     await message.answer(text="Canceled state")
     await state.clear()

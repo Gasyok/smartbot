@@ -164,3 +164,4 @@ cython_debug/
 Thumbs.db
 src/config/
 src/data/
+.flake8

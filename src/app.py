@@ -4,10 +4,11 @@ import uvicorn
 from fastapi import FastAPI
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
+from aiogram.fsm.storage.memory import MemoryStorage
 from contextlib import asynccontextmanager
+from config.cfg import TOKEN
 
 from config import cfg
-from config.setup import bot, dp
 from handlers import user, callback
 
 logger = logging.getLogger(__name__)
@@ -20,6 +21,9 @@ logging.basicConfig(
 
 WEBHOOK_PATH = cfg.WEBHOOK_PATH
 WEBHOOK_URL = cfg.WEBHOOK_URL
+storage = MemoryStorage()
+bot = Bot(token=TOKEN)
+dp = Dispatcher(storage=storage)
 
 
 @asynccontextmanager
@@ -49,4 +53,4 @@ async def bot_webhook(update: dict):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
