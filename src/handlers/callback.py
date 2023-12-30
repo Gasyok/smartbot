@@ -8,10 +8,11 @@ from aiogram.fsm.context import FSMContext
 from states.states import ExecuteCode
 import tempfile
 import subprocess
-from app import logger
+from app import logger, scheduler
 import os
 import json
 from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile
+from handlers.code import execute
 
 # from states.states import ExecuteCode
 
@@ -22,7 +23,6 @@ class UserMacros(CallbackData, prefix="macros"):
     action: str
     user_id: int
     macros_name: str
-    arguments: str
 
 
 @router.callback_query(F.data == "show_list_of_macros")
@@ -151,8 +151,7 @@ async def callbacks_macros(
     user_id = callback_data.user_id
     macros_name = callback_data.macros_name
     action = callback_data.action
-    arguments = callback_data.arguments.split()
-    await state.update_data(user_macros=callback_data)
+    await state.clear()
 
     match action:
         case "Show":
@@ -161,87 +160,87 @@ async def callbacks_macros(
                 reply_markup=kb.btns_action(callback_data)
             )
         case "Code":
-            code = macros.get_macros_code(user_id, macros_name)[0]
+            code, params = macros.get_macros_code(user_id, macros_name)
             await callback.message.edit_text(
-                f"Your Code below:\n{code}"
+                f"Your params below:\n\n{params}\n\nAnd code:\n\n{code}"
             )
         case "Run":
+            code, params = macros.get_macros_code(user_id, macros_name)
             await callback.message.edit_text(
-                f"Do you want to add arguments to code?:\n",
-                reply_markup=kb.btns_run_arguments(callback_data)
+                "Result:\n"
             )
+            await execute(callback.message, str(code), params)
         case "Edit":
+            code, params = macros.get_macros_code(user_id, macros_name)
             await state.set_state(ExecuteCode.editcode)
+            await state.update_data(user_id=user_id, macros_name=macros_name, code=code, params=params)
             await callback.message.edit_text(
-                "Enter the new script\n"
+                "Let's edit your script:\n..."
             )
-        case "None":
+        case "Delete":
+            macros.delete_macro(user_id, macros_name)
             await callback.message.edit_text(
-                f"Choose Format:\n",
-                reply_markup=kb.btns_run_format(callback_data)
-            )
-        case "Enter":
-            await state.set_state(ExecuteCode.arguments)
-            await callback.message.edit_text(
-                "Enter the arguments\n"
+                "Successfully deleted!"
             )
 
-    if action == "Stdout" or action == "File":
-        code = macros.get_macros_code(user_id, macros_name)[0]
-        with tempfile.TemporaryDirectory() as tmpdir:
-            script_path = os.path.join(tmpdir, "script.py")
-            with open(script_path, "w") as script_file:
-                script_file.write(code)
-
-            try:
-                command = ["python", script_path] + arguments
-                result = subprocess.run(
-                    command,
-                    capture_output=True,
-                    text=True,
-                    timeout=5,
-                    cwd=tmpdir,
-                )
-                output = result.stdout if result.stdout else result.stderr
-
-                if action == "File":
-                    stdout_file_path = os.path.join(tmpdir, "stdout.txt")
-                    with open(stdout_file_path, "w") as stdout_file:
-                        stdout_file.write(output)
-
-                    if len(os.listdir(tmpdir)) > 10:
-                        await callback.message.edit_text(
-                            "You Dont have any files or there are too many of them\n"
-                        )
-                    for file in os.listdir(tmpdir):
-                        if file != "script.py":
-                            file_path = os.path.join(tmpdir, file)
-                            with open(file_path, "rb") as f:
-                                await callback.message.answer_document(
-                                    BufferedInputFile(
-                                        f.read(), filename=file_path)
-                                )
-                    await callback.answer()
-                    return
-
-            except subprocess.TimeoutExpired:
-                output = "Timeout bro."
-
-        await callback.message.answer(
-            f"Your stdout\n{output}"
-        )
+        case "Schedule":
+            code, params = macros.get_macros_code(user_id, macros_name)
+            await state.set_state(ExecuteCode.schedule)
+            await state.update_data(user_id=user_id, macros_name=macros_name, code=code, params=params)
+            await callback.message.edit_text(
+                "Please send the cron expression for scheduling this macro.\n"
+                "Format: * * * * * (min hour day month day-of-week)"
+            )
 
     await callback.answer()
 
 
-@router.message(ExecuteCode.arguments, F.text)
-async def cmd_getarguments(message: Message, state: FSMContext):
-    list_of_arguments = message.text
+@router.message(ExecuteCode.editcode, F.text)
+async def cmd_editcode(message: Message, state: FSMContext):
     data = await state.get_data()
-    user_macros = data.get("user_macros")
-    user_macros.arguments = list_of_arguments
-    await message.reply(
-        text="Choose Format with your arguments\n",
-        reply_markup=kb.btns_run_format(user_macros)
-    )
+    macros_name = data.get("macros_name")
+    user_id = data.get("user_id")
+    macros.update_macro_code(user_id, macros_name, str(message.text))
     await state.clear()
+    await message.reply("Success!")
+
+
+@router.message(ExecuteCode.schedule, F.text)
+async def schedule_macro(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    cron_expression = message.text.strip()
+
+    # Здесь должна быть валидация cron выражения
+    if not validate_cron_expression(cron_expression):
+        await message.reply("The provided cron expression is not valid. Please try again.")
+        return
+
+    user_id = data.get("user_id")
+    macros_name = data.get("macros_name")
+    user_id = data.get("user_id")
+    code = data.get("code")
+    params = data.get("params")
+    callback = data.get("callback")
+    parts = cron_expression.split()
+
+    # Планирование выполнения скрипта
+    # scheduler.add_job(user_id, macros_name, code, params, cron_expression)
+    try:
+        scheduler.add_job(
+            execute,
+            args=[message, code, params],
+            trigger="cron",
+            minute=2
+        )
+        await message.reply("Your macro has been scheduled!")
+    except ValueError as e:
+        await message.reply(f"Error scheduling the macro: {e}")
+
+    await message.reply("Your macro has been scheduled!")
+    await state.clear()
+
+
+def validate_cron_expression(cron_expression):
+    if not cron_expression:
+        return False
+    return True

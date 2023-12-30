@@ -64,5 +64,25 @@ class Macros:
         conn.commit()
         conn.close()
 
+    def update_macro_code(self, user_id, name, new_code):
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE macros SET code = ? WHERE user_id = ? AND name = ?",
+            (new_code, user_id, name),
+        )
+        conn.commit()
+        conn.close()
+
+    def delete_macro(self, user_id, name):
+        conn = sqlite3.connect(self.db)
+        cursor = conn.cursor()
+        cursor.execute(
+            "DELETE FROM macros WHERE user_id = ? AND name = ?",
+            (user_id, name),
+        )
+        conn.commit()
+        conn.close()
+
 
 macros = Macros()

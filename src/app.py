@@ -7,6 +7,7 @@ from aiogram.filters.command import Command
 from aiogram.fsm.storage.memory import MemoryStorage
 from contextlib import asynccontextmanager
 from config.cfg import TOKEN
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from config import cfg
 from handlers import user, callback
@@ -24,6 +25,7 @@ WEBHOOK_URL = cfg.WEBHOOK_URL
 storage = MemoryStorage()
 bot = Bot(token=TOKEN)
 dp = Dispatcher(storage=storage)
+scheduler = AsyncIOScheduler()
 
 
 @asynccontextmanager
@@ -33,6 +35,7 @@ async def lifespan(app: FastAPI):
     if webhook_info.url != WEBHOOK_URL:
         await bot.set_webhook(url=WEBHOOK_URL)
 
+    scheduler.start()
     # Register routers
     dp.include_router(user.router)
     dp.include_router(callback.router)
