@@ -7,6 +7,7 @@ import os
 
 
 async def execute(message: Message, code: str, params):
+    print("Execute started!!!!")
 
     action = params["output"].capitalize()
     if not message:

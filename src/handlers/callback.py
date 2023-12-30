@@ -13,6 +13,8 @@ import os
 import json
 from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile
 from handlers.code import execute
+from apscheduler.triggers.cron import CronTrigger
+from datetime import datetime
 
 # from states.states import ExecuteCode
 
@@ -226,17 +228,22 @@ async def schedule_macro(message: types.Message, state: FSMContext):
     # Планирование выполнения скрипта
     # scheduler.add_job(user_id, macros_name, code, params, cron_expression)
     try:
+        # scheduler.add_job(
+        #     execute,
+        #     args=[message, code, params],
+        #     trigger="cron",
+        #     cron=cron_expression
+        # )
+        scheduler.start()
         scheduler.add_job(
             execute,
             args=[message, code, params],
-            trigger="cron",
-            minute=2
+            trigger=CronTrigger(minute=1, start_date=datetime.now())
         )
         await message.reply("Your macro has been scheduled!")
     except ValueError as e:
         await message.reply(f"Error scheduling the macro: {e}")
 
-    await message.reply("Your macro has been scheduled!")
     await state.clear()
 
 
